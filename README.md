@@ -3,7 +3,7 @@
 Analysis of a **real randomized advertising experiment** (Criteo's public uplift dataset,
 13,979,592 users) from raw data to a ship/no-ship recommendation: SQL in DuckDB,
 validity checks, confidence intervals, power analysis, CUPED variance reduction,
-intent-to-treat vs effect-on-exposed, and a break-even decision under stated assumptions.
+intent-to-treat vs effect-on-exposed, a Bayesian re-analysis, and a break-even decision under stated assumptions.
 
 ## Key results
 
@@ -16,6 +16,7 @@ intent-to-treat vs effect-on-exposed, and a break-even decision under stated ass
 - **Validity:** sample ratio mismatch check passed (85.000% vs 85% design, χ² p = 0.999).
 - **Power:** the test could detect lifts as small as **1.05%** (visits) and **4.76%** (conversions) relative; observed effects are 12–26× larger.
 - **Effect on users who actually saw an ad** (only 3.6% of the treatment group): **+28.7 pts** visits, **+3.20 pts** conversions.
+- **Bayesian check:** P(ads raise conversions) > 0.9999; relative lift **+59.5%** [95% credible interval +54.4%, +64.7%]. A skeptical prior ("ads do nothing", worth 100k users) barely moves it (+59.0%). P(lift > 50%) ≈ 1.00 but P(lift > 60%) = 0.42, so a planning number above 60% would be optimistic.
 - **Decision:** the campaign pays for itself when a conversion is worth more than roughly **31–39× the cost of showing ads to one user** (see [decision memo](docs/decision_memo.md)).
 
 ## What I checked, and what I found
@@ -29,6 +30,7 @@ intent-to-treat vs effect-on-exposed, and a break-even decision under stated ass
 | 5. Covariate balance | `analysis/05_balance.py` | 9 of 12 pre-experiment features differ (max SMD 0.049 vs ~0.0008 expected by chance) |
 | 6. Exposure: ITT vs CACE | `analysis/06_exposure.py` | Naive exposed-vs-unexposed comparison overstates the visit effect by about a third (selection bias) |
 | 7. Break-even decision | `analysis/07_decision.py` | Break-even conversion value under labelled cost assumptions |
+| 8. Bayesian re-analysis | `analysis/08_bayesian.py` | Beta-Binomial posteriors agree with the frequentist CIs at this sample size; flat vs skeptical prior changes the lift by <1 pt relative; reports P(lift > threshold) and expected loss for the ship decision |
 
 ### The most important finding: an imbalance that a single number would hide
 In a clean randomized test, CUPED should shrink the confidence interval **without moving the estimate**.
@@ -43,6 +45,7 @@ report the unadjusted intent-to-treat estimate as primary and the adjusted estim
 - This is an analysis of public experimental data; I did not design or run the experiment.
 - The data has no costs or revenues; the decision uses **explicitly labelled assumptions**.
 - Features are anonymized, so the source of the covariate imbalance cannot be identified.
+- The Bayesian analysis models the unadjusted intent-to-treat rates, so it inherits the covariate-imbalance caveat above.
 - The effect on exposed users (CACE) assumes assignment affects outcomes only through ad exposure.
 
 ## Run it
