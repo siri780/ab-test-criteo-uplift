@@ -1,0 +1,27 @@
+name: Docker build and smoke test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t criteo-ab .
+
+      - name: Make a small synthetic sample (same columns as Criteo)
+        run: |
+          mkdir -p sample out
+          docker run --rm -v "$PWD:/w" -w /w criteo-ab python tests/make_sample.py
+
+      - name: Run every analysis step inside the container
+        run: docker run --rm -v "$PWD/sample:/app/data" -v "$PWD/out:/app/results" criteo-ab
+
+      - name: Check the decision table was written
+        run: test -s out/decision_table.md && head -5 out/decision_table.md
