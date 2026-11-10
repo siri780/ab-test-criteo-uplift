@@ -48,7 +48,15 @@ report the unadjusted intent-to-treat estimate as primary and the adjusted estim
 - The Bayesian analysis models the unadjusted intent-to-treat rates, so it inherits the covariate-imbalance caveat above.
 - The effect on exposed users (CACE) assumes assignment affects outcomes only through ad exposure.
 
-## Run it
+## Run it with Docker
+```bash
+docker build -t criteo-ab .
+docker run --rm -v "$PWD/data:/app/data" -v "$PWD/results:/app/results" criteo-ab
+```
+The container downloads the data on the first run (kept in `./data`) and runs all eight steps in order.
+A GitHub Actions workflow builds the image and smoke-tests it on a synthetic sample on every push.
+
+## Run it without Docker
 ```bash
 pip install -r requirements.txt
 mkdir -p data && curl -L -o data/criteo-uplift-v2.1.csv.gz \
