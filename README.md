@@ -48,6 +48,15 @@ report the unadjusted intent-to-treat estimate as primary and the adjusted estim
 - The Bayesian analysis models the unadjusted intent-to-treat rates, so it inherits the covariate-imbalance caveat above.
 - The effect on exposed users (CACE) assumes assignment affects outcomes only through ad exposure.
 
+
+## Data warehouse version (BigQuery)
+The same analysis also runs in **Google BigQuery**: [bigquery/criteo_bigquery.ipynb](bigquery/criteo_bigquery.ipynb).
+- Loads all 13,979,592 rows (1.8 GB) into a raw table, builds a **clustered fact table**, and adds **reporting views** for group rates and lift.
+- Reproduces the results exactly in SQL: conversion lift **+59.4%** (+0.115 pts, 95% CI 0.109 to 0.122), visit lift **+27.1%**.
+- New finding: the effect is **not uniform**. Conversion lift is 50–68% in the lower groups of feature f0 and falls to 21–29% in the top groups (heterogeneous treatment effects). The lowest deciles merge because f0 has many identical values.
+- Each query reports the data it scanned, and the whole notebook stays inside BigQuery's free sandbox.
+
+  
 ## Run it with Docker
 ```bash
 docker build -t criteo-ab .
